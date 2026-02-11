@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ירדן סימולטור 3000</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0a0a0a;
+  color: #fff;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  overflow: hidden;
+  height: 100vh;
+  user-select: none;
+}
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+header {
+  text-align: center;
+  padding: 12px;
+  background: linear-gradient(135deg, #1a0a2e, #16213e);
+  border-bottom: 2px solid #C8FF00;
+}
+header h1 {
+  font-size: 28px;
+  background: linear-gradient(90deg, #C8FF00, #ff6b6b, #C8FF00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 2s infinite;
+}
+@keyframes shimmer {
+  0%,100% { filter: hue-rotate(0deg); }
+  50% { filter: hue-rotate(30deg); }
+}
+header p { color: #9ca3af; font-size: 13px; margin-top: 2px; }
+#stage {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0a 70%);
+}
+#yarden-container {
+  position: relative;
+  transition: transform 0.3s ease;
+}
+#yarden-img {
+  width: 280px;
+  height: auto;
+  border-radius: 20px;
+  box-shadow: 0 0 40px rgba(200,255,0,0.15);
+  transition: all 0.4s ease;
+  position: relative;
+  z-index: 2;
+}
+#yarden-img.fat {
+  transform: scaleX(1.8) scaleY(1.3);
+  border-radius: 50%;
+}
+#yarden-img.bighead {
+  transform: scaleX(1) scaleY(1) scale(1);
+  clip-path: none;
+}
+#yarden-img.tiny {
+  transform: scale(0.3);
+}
+#yarden-img.spinning {
+  animation: spin 0.5s linear infinite;
+}
+#yarden-img.upsidedown {
+  transform: rotate(180deg);
+}
+#yarden-img.rainbow {
+  filter: hue-rotate(0deg) saturate(3);
+  animation: rainbowFilter 1s linear infinite;
+}
+#yarden-img.exploded {
+  animation: explode 0.6s forwards;
+}
+#yarden-img.jelly {
+  animation: jelly 0.5s ease infinite;
+}
+#yarden-img.inflating {
+  animation: inflate 2s ease-in-out infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes rainbowFilter { to { filter: hue-rotate(360deg) saturate(3); } }
+@keyframes explode {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(2.5); opacity: 0.5; filter: brightness(5); }
+  100% { transform: scale(0); opacity: 0; }
+}
+@keyframes jelly {
+  0%,100% { transform: scaleX(1) scaleY(1); }
+  25% { transform: scaleX(1.2) scaleY(0.8); }
+  50% { transform: scaleX(0.8) scaleY(1.2); }
+  75% { transform: scaleX(1.15) scaleY(0.85); }
+}
+@keyframes inflate {
+  0%,100% { transform: scaleX(1.5) scaleY(1.2); }
+  50% { transform: scaleX(2.2) scaleY(1.6); }
+}
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(-20px) rotate(-5deg); }
+  75% { transform: translateX(20px) rotate(5deg); }
+}
+
+/* Overlays on the image */
+.overlay-item {
+  position: absolute;
+  z-index: 10;
+  pointer-events: none;
+  font-size: 60px;
+  animation: overlayPop 0.4s ease;
+}
+@keyframes overlayPop {
+  0% { transform: scale(0) rotate(-30deg); opacity: 0; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* Flying objects */
+.flying-obj {
+  position: absolute;
+  font-size: 50px;
+  z-index: 20;
+  pointer-events: none;
+}
+
+/* Splat effect */
+.splat {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  z-index: 5;
+  animation: splatAnim 0.3s ease forwards;
+  pointer-events: none;
+}
+@keyframes splatAnim {
+  0% { transform: scale(0); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.8; }
+}
+
+/* Particle effects */
+.particle {
+  position: absolute;
+  pointer-events: none;
+  z-index: 30;
+  font-size: 30px;
+  animation: particleFly 1s ease-out forwards;
+}
+@keyframes particleFly {
+  0% { opacity: 1; transform: translate(0,0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.3) rotate(360deg); }
+}
+
+/* Speech bubble */
+#speech {
+  position: absolute;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #C8FF00;
+  color: #000;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 16px;
+  white-space: nowrap;
+  z-index: 15;
+  opacity: 0;
+  transition: opacity 0.3s;
+  text-align: center;
+}
+#speech.show { opacity: 1; }
+#speech::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid #C8FF00;
+}
+
+/* Controls */
+#controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+  justify-content: center;
+  background: #111;
+  border-top: 1px solid #222;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.btn {
+  padding: 10px 16px;
+  border: 1px solid #333;
+  border-radius: 12px;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn:hover {
+  border-color: #C8FF00;
+  background: #222;
+  transform: scale(1.05);
+}
+.btn:active {
+  transform: scale(0.95);
+}
+.btn .emoji { font-size: 20px; }
+
+/* Score */
+#score {
+  position: fixed;
+  top: 70px;
+  left: 20px;
+  background: rgba(0,0,0,0.8);
+  border: 1px solid #C8FF00;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-size: 14px;
+  z-index: 50;
+}
+#score span { color: #C8FF00; font-weight: bold; font-size: 20px; }
+
+/* Combo */
+#combo {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  font-size: 60px;
+  font-weight: 900;
+  color: #C8FF00;
+  text-shadow: 0 0 30px rgba(200,255,0,0.5);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 100;
+  transition: all 0.3s;
+}
+#combo.show {
+  opacity: 1;
+  animation: comboPop 0.5s ease;
+}
+@keyframes comboPop {
+  0% { transform: translate(-50%,-50%) scale(0); }
+  50% { transform: translate(-50%,-50%) scale(1.3); }
+  100% { transform: translate(-50%,-50%) scale(1); }
+}
+
+/* Costume overlay */
+#costume {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  font-size: 120px;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+#costume.show { opacity: 1; }
+
+/* Belly overlay */
+#belly {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  font-size: 100px;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+#belly.show { opacity: 1; }
+
+/* Screen flash */
+#flash {
+  position: fixed;
+  inset: 0;
+  background: white;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 200;
+  transition: opacity 0.1s;
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>🎮 ירדן סימולטור 3000 🎮</h1>
+    <p>האפליקציה שירדן לא ביקש. בכלל.</p>
+  </header>
+
+  <div id="stage">
+    <div id="yarden-container">
+      <div id="costume"></div>
+      <img id="yarden-img" src="yarden.jpg" alt="ירדן" crossorigin>
+      <div id="belly"></div>
+      <div id="speech"></div>
+    </div>
+  </div>
+
+  <div id="controls">
+    <button class="btn" onclick="doAction('cake')"><span class="emoji">🎂</span> זרוק עוגה</button>
+    <button class="btn" onclick="doAction('egg')"><span class="emoji">🥚</span> זרוק ביצה</button>
+    <button class="btn" onclick="doAction('tomato')"><span class="emoji">🍅</span> עגבניה בפרצוף</button>
+    <button class="btn" onclick="doAction('slap')"><span class="emoji">👋</span> סטירה</button>
+    <button class="btn" onclick="doAction('fat')"><span class="emoji">🍔</span> השמן אותו</button>
+    <button class="btn" onclick="doAction('tiny')"><span class="emoji">🔬</span> הקטן אותו</button>
+    <button class="btn" onclick="doAction('spin')"><span class="emoji">🌀</span> סחרחורת</button>
+    <button class="btn" onclick="doAction('flip')"><span class="emoji">🙃</span> הפוך אותו</button>
+    <button class="btn" onclick="doAction('rainbow')"><span class="emoji">🌈</span> רינבואו</button>
+    <button class="btn" onclick="doAction('crown')"><span class="emoji">👑</span> מלך השוטים</button>
+    <button class="btn" onclick="doAction('clown')"><span class="emoji">🤡</span> ליצן</button>
+    <button class="btn" onclick="doAction('diaper')"><span class="emoji">👶</span> חיתול</button>
+    <button class="btn" onclick="doAction('poop')"><span class="emoji">💩</span> קקי על הראש</button>
+    <button class="btn" onclick="doAction('inflate')"><span class="emoji">🎈</span> נפח אותו</button>
+    <button class="btn" onclick="doAction('explode')"><span class="emoji">💥</span> פוצץ אותו</button>
+    <button class="btn" onclick="doAction('jelly')"><span class="emoji">🍮</span> ג׳לי</button>
+    <button class="btn" onclick="doAction('shower')"><span class="emoji">🚿</span> מקלחת קרה</button>
+    <button class="btn" onclick="doAction('money')"><span class="emoji">💸</span> גשם כסף</button>
+    <button class="btn" onclick="doAction('fart')"><span class="emoji">💨</span> נפיחה</button>
+    <button class="btn" onclick="doAction('kiss')"><span class="emoji">💋</span> נשיקה רטובה</button>
+    <button class="btn" onclick="doAction('reset')"><span class="emoji">🔄</span> איפוס</button>
+  </div>
+</div>
+
+<div id="score">נקודות השפלה: <span id="scoreVal">0</span></div>
+<div id="combo"></div>
+<div id="flash"></div>
+
+<script>
+const img = document.getElementById('yarden-img');
+const container = document.getElementById('yarden-container');
+const speech = document.getElementById('speech');
+const costume = document.getElementById('costume');
+const belly = document.getElementById('belly');
+const stage = document.getElementById('stage');
+const comboEl = document.getElementById('combo');
+const flash = document.getElementById('flash');
+const scoreEl = document.getElementById('scoreVal');
+
+let score = 0;
+let combo = 0;
+let comboTimer = null;
+let activeEffects = new Set();
+
+// Sound synthesis
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playSound(type) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  
+  switch(type) {
+    case 'splat':
+      osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.3);
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+      break;
+    case 'slap':
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+      break;
+    case 'boing':
+      osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+      osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.3);
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+      break;
+    case 'fart':
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(80, audioCtx.currentTime);
+      osc.frequency.linearRampToValueAtTime(60, audioCtx.currentTime + 0.5);
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+      break;
+    case 'pop':
+      osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+      break;
+    case 'woosh':
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+      break;
+    case 'kiss':
+      osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1500, audioCtx.currentTime + 0.05);
+      osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+      break;
+    case 'boom':
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime + 0.5);
+      gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+      break;
+    case 'money':
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(1000, audioCtx.currentTime + 0.1);
+      osc.frequency.setValueAtTime(1200, audioCtx.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+      break;
+  }
+}
+
+const REACTIONS = {
+  cake: ['אוייי לא העוגה!', 'יא חיות!!', 'השמנתי עוד קילו!', 'עוגה? אני בדיאטה!!', 'למה דווקא בפרצוף?!'],
+  egg: ['ביצה?! באמת?!', 'אני מסריח עכשיו!', 'יא מטורפים!', 'עידן אני יודע שזה אתה!!'],
+  tomato: ['רוטב עגבניות חינם!', 'פאק!! הוכתם!', 'אני נראה כמו פיצה!', 'עגבנייייה!'],
+  slap: ['אאוץ׳!!!', 'למה??!', 'סטירה?! אני אתבע!', 'יא ברוטלי!', 'הלחי שלי!!'],
+  fat: ['אני לא שמן! אני בונה!', 'עוד המבורגר?', 'הכרס שלי!!', 'אני מתפוצץ!', 'דיאטה מחר...'],
+  tiny: ['אני קטנטןןןן!', 'מי הקטין אותי?!', 'אני גמד!', 'תחזירו אותי!!'],
+  spin: ['אני מסתחרררר!', 'עצרו את העולם!', 'הולך להקיא!', 'סחרחורתתת!'],
+  flip: ['!הפוך אני', 'העולם מסתובב!', 'הדם עולה לראש!', 'תהפכו אותי בחזרה!!'],
+  rainbow: ['אני צבעונייייי!', 'יוניקורן ירדן!', 'גאווה!', 'נראה כמו סוכריה!'],
+  crown: ['אני המלך!', 'כרעו ברך!', 'מלך של מה? של כלום!', 'כתר!! סוף סוף!'],
+  clown: ['אני לא ליצן!', 'הונק הונק!', 'ביפ ביפ!', 'ליצן? אני CEO!'],
+  diaper: ['חיתול?! אני בן 26!', 'מי שם לי חיתול?!', 'אני תינוק?!', 'גואהההה!!'],
+  poop: ['קקי?? על הראש שלי?!', 'פאק זה מסריח!', 'למהההה!', 'אני הולך להתקלח!'],
+  inflate: ['אני מתנפחחחח!', 'עוד שנייה אני מתפוצץ!', 'אני בלון!', 'עזרהההה!'],
+  explode: ['בוווווום!!!', '💥💥💥', 'אני התפוצצתי!', 'RIP ירדן'],
+  jelly: ['אני רועדדדד!', 'ג׳לי ירדן!', 'תפסיקו לרעוד אותי!', 'בלוב בלוב!'],
+  shower: ['קרררר!!!', 'מקלחת קפואה!', 'אני רטובבב!', 'תביאו מגבת!!'],
+  money: ['כסף!! תמשיכו!', 'אני עשיר!', 'עוד! עוד כסף!', 'זה מזויף נכון?'],
+  fart: ['מי עשה?!', 'פששששש', 'זה לא אני!!', 'אוויר מקולקל!', 'סליחהההה'],
+  kiss: ['בלעעע!', 'נשיקה?! ממי?!', 'רטובבב!', 'אל תנשקו אותי!', 'חחחח עזבו!'],
+};
+
+function say(action) {
+  const options = REACTIONS[action] || ['מה עושים לי?!'];
+  const text = options[Math.floor(Math.random() * options.length)];
+  speech.textContent = text;
+  speech.classList.add('show');
+  setTimeout(() => speech.classList.remove('show'), 2000);
+}
+
+function addScore(pts) {
+  score += pts;
+  scoreEl.textContent = score;
+  combo++;
+  clearTimeout(comboTimer);
+  comboTimer = setTimeout(() => { combo = 0; }, 2000);
+  
+  if (combo >= 3) {
+    comboEl.textContent = `קומבו x${combo}! 🔥`;
+    comboEl.classList.add('show');
+    setTimeout(() => comboEl.classList.remove('show'), 1000);
+    score += combo * 5;
+    scoreEl.textContent = score;
+  }
+}
+
+function spawnParticles(emoji, count = 8) {
+  const rect = img.getBoundingClientRect();
+  const cx = rect.left + rect.width/2;
+  const cy = rect.top + rect.height/2;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.textContent = emoji;
+    const angle = (Math.PI * 2 / count) * i;
+    const dist = 100 + Math.random() * 100;
+    p.style.left = cx + 'px';
+    p.style.top = cy + 'px';
+    p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+    p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 1000);
+  }
+}
+
+function throwAt(emoji, splatColor) {
+  const rect = img.getBoundingClientRect();
+  const startX = Math.random() > 0.5 ? -50 : window.innerWidth + 50;
+  const startY = Math.random() * window.innerHeight * 0.5;
+  const endX = rect.left + rect.width/2 - 25;
+  const endY = rect.top + rect.height/2 - 25;
+
+  const obj = document.createElement('div');
+  obj.className = 'flying-obj';
+  obj.textContent = emoji;
+  obj.style.left = startX + 'px';
+  obj.style.top = startY + 'px';
+  obj.style.transition = 'all 0.4s ease-in';
+  document.body.appendChild(obj);
+
+  requestAnimationFrame(() => {
+    obj.style.left = endX + 'px';
+    obj.style.top = endY + 'px';
+    obj.style.transform = 'rotate(720deg)';
+  });
+
+  setTimeout(() => {
+    obj.remove();
+    // Splat
+    if (splatColor) {
+      const splat = document.createElement('div');
+      splat.className = 'splat';
+      splat.style.background = splatColor;
+      splat.style.left = (rect.width/2 - 60 + Math.random()*40-20) + 'px';
+      splat.style.top = (rect.height/2 - 60 + Math.random()*40-20) + 'px';
+      container.appendChild(splat);
+      setTimeout(() => splat.remove(), 3000);
+    }
+    // Shake
+    container.style.animation = 'shake 0.3s ease';
+    setTimeout(() => container.style.animation = '', 300);
+    spawnParticles(emoji, 6);
+  }, 400);
+}
+
+function flashScreen() {
+  flash.style.opacity = '0.7';
+  setTimeout(() => flash.style.opacity = '0', 100);
+}
+
+function rain(emoji, count = 20) {
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => {
+      const p = document.createElement('div');
+      p.style.position = 'fixed';
+      p.style.left = Math.random() * 100 + 'vw';
+      p.style.top = '-40px';
+      p.style.fontSize = '30px';
+      p.style.zIndex = '50';
+      p.style.pointerEvents = 'none';
+      p.style.transition = 'all 1.5s ease-in';
+      p.textContent = emoji;
+      document.body.appendChild(p);
+      requestAnimationFrame(() => {
+        p.style.top = '110vh';
+        p.style.transform = `rotate(${Math.random()*720}deg)`;
+      });
+      setTimeout(() => p.remove(), 2000);
+    }, i * 80);
+  }
+}
+
+function clearEffects() {
+  img.className = '';
+  costume.className = '';
+  costume.textContent = '';
+  belly.className = '';
+  belly.textContent = '';
+  activeEffects.clear();
+}
+
+function doAction(action) {
+  say(action);
+  
+  switch(action) {
+    case 'cake':
+      throwAt('🎂', 'rgba(255,200,100,0.6)');
+      playSound('splat');
+      addScore(10);
+      break;
+    case 'egg':
+      throwAt('🥚', 'rgba(255,255,200,0.6)');
+      playSound('splat');
+      addScore(10);
+      break;
+    case 'tomato':
+      throwAt('🍅', 'rgba(255,50,50,0.5)');
+      playSound('splat');
+      addScore(15);
+      break;
+    case 'slap':
+      flashScreen();
+      playSound('slap');
+      container.style.animation = 'shake 0.3s ease';
+      setTimeout(() => container.style.animation = '', 300);
+      spawnParticles('👋', 4);
+      spawnParticles('⭐', 6);
+      addScore(20);
+      break;
+    case 'fat':
+      clearEffects();
+      img.classList.add('fat');
+      belly.textContent = '🍔';
+      belly.classList.add('show');
+      activeEffects.add('fat');
+      playSound('boing');
+      addScore(15);
+      break;
+    case 'tiny':
+      clearEffects();
+      img.classList.add('tiny');
+      playSound('pop');
+      addScore(10);
+      break;
+    case 'spin':
+      img.classList.add('spinning');
+      playSound('woosh');
+      setTimeout(() => img.classList.remove('spinning'), 3000);
+      addScore(15);
+      break;
+    case 'flip':
+      clearEffects();
+      img.classList.add('upsidedown');
+      playSound('woosh');
+      addScore(10);
+      break;
+    case 'rainbow':
+      img.classList.add('rainbow');
+      spawnParticles('🌈', 8);
+      playSound('money');
+      setTimeout(() => img.classList.remove('rainbow'), 4000);
+      addScore(10);
+      break;
+    case 'crown':
+      costume.textContent = '👑';
+      costume.classList.add('show');
+      playSound('money');
+      addScore(5);
+      break;
+    case 'clown':
+      costume.textContent = '🤡';
+      costume.classList.add('show');
+      spawnParticles('🎪', 5);
+      playSound('boing');
+      addScore(15);
+      break;
+    case 'diaper':
+      belly.textContent = '🍼';
+      belly.classList.add('show');
+      costume.textContent = '👶';
+      costume.classList.add('show');
+      playSound('boing');
+      addScore(25);
+      break;
+    case 'poop':
+      costume.textContent = '💩';
+      costume.classList.add('show');
+      spawnParticles('💩', 6);
+      spawnParticles('🪰', 4);
+      playSound('fart');
+      addScore(30);
+      break;
+    case 'inflate':
+      clearEffects();
+      img.classList.add('inflating');
+      playSound('boing');
+      addScore(15);
+      break;
+    case 'explode':
+      playSound('boom');
+      flashScreen();
+      img.classList.add('exploded');
+      spawnParticles('💥', 12);
+      spawnParticles('🔥', 8);
+      addScore(50);
+      setTimeout(() => {
+        img.classList.remove('exploded');
+        img.style.transform = '';
+        img.style.opacity = '1';
+      }, 2000);
+      break;
+    case 'jelly':
+      clearEffects();
+      img.classList.add('jelly');
+      playSound('boing');
+      setTimeout(() => img.classList.remove('jelly'), 3000);
+      addScore(10);
+      break;
+    case 'shower':
+      rain('💧', 30);
+      playSound('woosh');
+      addScore(15);
+      break;
+    case 'money':
+      rain('💵', 25);
+      playSound('money');
+      addScore(20);
+      break;
+    case 'fart':
+      playSound('fart');
+      spawnParticles('💨', 8);
+      spawnParticles('🤢', 4);
+      container.style.animation = 'shake 0.5s ease';
+      setTimeout(() => container.style.animation = '', 500);
+      addScore(20);
+      break;
+    case 'kiss':
+      playSound('kiss');
+      spawnParticles('💋', 10);
+      spawnParticles('❤️', 6);
+      addScore(10);
+      break;
+    case 'reset':
+      clearEffects();
+      // remove all splats
+      container.querySelectorAll('.splat').forEach(s => s.remove());
+      score = 0;
+      combo = 0;
+      scoreEl.textContent = '0';
+      break;
+  }
+}
+
+// Keyboard shortcuts for rapid fire
+document.addEventListener('keydown', e => {
+  const map = {
+    '1': 'cake', '2': 'egg', '3': 'tomato', '4': 'slap',
+    '5': 'fat', '6': 'tiny', '7': 'spin', '8': 'explode',
+    ' ': 'slap', 'f': 'fart', 'p': 'poop',
+  };
+  if (map[e.key]) doAction(map[e.key]);
+});
+</script>
+</body>
+</html>
