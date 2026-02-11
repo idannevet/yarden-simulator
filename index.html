@@ -2,306 +2,85 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>ירדן סימולטור 3000</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body {
   background: #0a0a0a;
   color: #fff;
   font-family: 'Segoe UI', Arial, sans-serif;
   overflow: hidden;
   height: 100vh;
+  height: 100dvh;
   user-select: none;
+  touch-action: none;
 }
-#app {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
+#app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
 header {
-  text-align: center;
-  padding: 12px;
+  text-align: center; padding: 8px;
   background: linear-gradient(135deg, #1a0a2e, #16213e);
   border-bottom: 2px solid #C8FF00;
+  flex-shrink: 0;
 }
 header h1 {
-  font-size: 28px;
+  font-size: 22px;
   background: linear-gradient(90deg, #C8FF00, #ff6b6b, #C8FF00);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: shimmer 2s infinite;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
-@keyframes shimmer {
-  0%,100% { filter: hue-rotate(0deg); }
-  50% { filter: hue-rotate(30deg); }
-}
-header p { color: #9ca3af; font-size: 13px; margin-top: 2px; }
+header p { color: #9ca3af; font-size: 11px; }
+
 #stage {
-  flex: 1;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+  flex: 1; position: relative; overflow: hidden;
   background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0a 70%);
 }
-#yarden-container {
-  position: relative;
-  transition: transform 0.3s ease;
-}
-#yarden-img {
-  width: 280px;
-  height: auto;
-  border-radius: 20px;
-  box-shadow: 0 0 40px rgba(200,255,0,0.15);
-  transition: all 0.4s ease;
-  position: relative;
-  z-index: 2;
-}
-#yarden-img.fat {
-  transform: scaleX(1.8) scaleY(1.3);
-  border-radius: 50%;
-}
-#yarden-img.bighead {
-  transform: scaleX(1) scaleY(1) scale(1);
-  clip-path: none;
-}
-#yarden-img.tiny {
-  transform: scale(0.3);
-}
-#yarden-img.spinning {
-  animation: spin 0.5s linear infinite;
-}
-#yarden-img.upsidedown {
-  transform: rotate(180deg);
-}
-#yarden-img.rainbow {
-  filter: hue-rotate(0deg) saturate(3);
-  animation: rainbowFilter 1s linear infinite;
-}
-#yarden-img.exploded {
-  animation: explode 0.6s forwards;
-}
-#yarden-img.jelly {
-  animation: jelly 0.5s ease infinite;
-}
-#yarden-img.inflating {
-  animation: inflate 2s ease-in-out infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes rainbowFilter { to { filter: hue-rotate(360deg) saturate(3); } }
-@keyframes explode {
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(2.5); opacity: 0.5; filter: brightness(5); }
-  100% { transform: scale(0); opacity: 0; }
-}
-@keyframes jelly {
-  0%,100% { transform: scaleX(1) scaleY(1); }
-  25% { transform: scaleX(1.2) scaleY(0.8); }
-  50% { transform: scaleX(0.8) scaleY(1.2); }
-  75% { transform: scaleX(1.15) scaleY(0.85); }
-}
-@keyframes inflate {
-  0%,100% { transform: scaleX(1.5) scaleY(1.2); }
-  50% { transform: scaleX(2.2) scaleY(1.6); }
-}
-@keyframes shake {
-  0%,100% { transform: translateX(0); }
-  25% { transform: translateX(-20px) rotate(-5deg); }
-  75% { transform: translateX(20px) rotate(5deg); }
+
+/* The canvas where everything is drawn */
+#gameCanvas {
+  width: 100%; height: 100%;
+  display: block;
 }
 
-/* Overlays on the image */
-.overlay-item {
-  position: absolute;
-  z-index: 10;
-  pointer-events: none;
-  font-size: 60px;
-  animation: overlayPop 0.4s ease;
-}
-@keyframes overlayPop {
-  0% { transform: scale(0) rotate(-30deg); opacity: 0; }
-  100% { transform: scale(1) rotate(0deg); opacity: 1; }
-}
-
-/* Flying objects */
-.flying-obj {
-  position: absolute;
-  font-size: 50px;
-  z-index: 20;
-  pointer-events: none;
-}
-
-/* Splat effect */
-.splat {
-  position: absolute;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  z-index: 5;
-  animation: splatAnim 0.3s ease forwards;
-  pointer-events: none;
-}
-@keyframes splatAnim {
-  0% { transform: scale(0); opacity: 1; }
-  100% { transform: scale(1); opacity: 0.8; }
-}
-
-/* Particle effects */
-.particle {
-  position: absolute;
-  pointer-events: none;
-  z-index: 30;
-  font-size: 30px;
-  animation: particleFly 1s ease-out forwards;
-}
-@keyframes particleFly {
-  0% { opacity: 1; transform: translate(0,0) scale(1); }
-  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.3) rotate(360deg); }
-}
-
-/* Speech bubble */
-#speech {
-  position: absolute;
-  bottom: -60px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #C8FF00;
-  color: #000;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-weight: bold;
-  font-size: 16px;
-  white-space: nowrap;
-  z-index: 15;
-  opacity: 0;
-  transition: opacity 0.3s;
-  text-align: center;
-}
-#speech.show { opacity: 1; }
-#speech::before {
-  content: '';
-  position: absolute;
-  top: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-bottom: 8px solid #C8FF00;
-}
-
-/* Controls */
 #controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 12px;
-  justify-content: center;
-  background: #111;
-  border-top: 1px solid #222;
-  max-height: 200px;
-  overflow-y: auto;
+  display: flex; flex-wrap: wrap; gap: 6px; padding: 8px;
+  justify-content: center; background: #111;
+  border-top: 1px solid #222; flex-shrink: 0;
+  max-height: 140px; overflow-y: auto;
 }
 .btn {
-  padding: 10px 16px;
-  border: 1px solid #333;
-  border-radius: 12px;
-  background: #1a1a1a;
-  color: #fff;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  padding: 8px 12px; border: 1px solid #333; border-radius: 10px;
+  background: #1a1a1a; color: #fff; font-size: 12px;
+  cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; gap: 4px;
 }
-.btn:hover {
-  border-color: #C8FF00;
-  background: #222;
-  transform: scale(1.05);
-}
-.btn:active {
-  transform: scale(0.95);
-}
-.btn .emoji { font-size: 20px; }
+.btn:hover, .btn:active { border-color: #C8FF00; background: #222; }
+.btn .emoji { font-size: 16px; }
 
-/* Score */
 #score {
-  position: fixed;
-  top: 70px;
-  left: 20px;
-  background: rgba(0,0,0,0.8);
-  border: 1px solid #C8FF00;
-  border-radius: 12px;
-  padding: 10px 16px;
-  font-size: 14px;
-  z-index: 50;
+  position: absolute; top: 8px; left: 8px;
+  background: rgba(0,0,0,0.8); border: 1px solid #C8FF00;
+  border-radius: 10px; padding: 6px 12px; font-size: 12px; z-index: 50;
 }
-#score span { color: #C8FF00; font-weight: bold; font-size: 20px; }
+#score span { color: #C8FF00; font-weight: bold; font-size: 16px; }
 
-/* Combo */
+#speech {
+  position: absolute; z-index: 60; background: #C8FF00; color: #000;
+  padding: 6px 14px; border-radius: 16px; font-weight: bold; font-size: 14px;
+  pointer-events: none; opacity: 0; transition: opacity 0.3s; white-space: nowrap;
+}
+#speech.show { opacity: 1; }
+
 #combo {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%,-50%);
-  font-size: 60px;
-  font-weight: 900;
-  color: #C8FF00;
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  font-size: 48px; font-weight: 900; color: #C8FF00;
   text-shadow: 0 0 30px rgba(200,255,0,0.5);
-  opacity: 0;
-  pointer-events: none;
-  z-index: 100;
-  transition: all 0.3s;
+  opacity: 0; pointer-events: none; z-index: 100;
 }
-#combo.show {
-  opacity: 1;
-  animation: comboPop 0.5s ease;
-}
+#combo.show { opacity: 1; animation: comboPop 0.5s ease; }
 @keyframes comboPop {
   0% { transform: translate(-50%,-50%) scale(0); }
   50% { transform: translate(-50%,-50%) scale(1.3); }
   100% { transform: translate(-50%,-50%) scale(1); }
-}
-
-/* Costume overlay */
-#costume {
-  position: absolute;
-  z-index: 3;
-  pointer-events: none;
-  font-size: 120px;
-  top: -30px;
-  left: 50%;
-  transform: translateX(-50%);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-#costume.show { opacity: 1; }
-
-/* Belly overlay */
-#belly {
-  position: absolute;
-  z-index: 3;
-  pointer-events: none;
-  font-size: 100px;
-  bottom: -20px;
-  left: 50%;
-  transform: translateX(-50%);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-#belly.show { opacity: 1; }
-
-/* Screen flash */
-#flash {
-  position: fixed;
-  inset: 0;
-  background: white;
-  opacity: 0;
-  pointer-events: none;
-  z-index: 200;
-  transition: opacity 0.1s;
 }
 </style>
 </head>
@@ -309,450 +88,828 @@ header p { color: #9ca3af; font-size: 13px; margin-top: 2px; }
 <div id="app">
   <header>
     <h1>🎮 ירדן סימולטור 3000 🎮</h1>
-    <p>האפליקציה שירדן לא ביקש. בכלל.</p>
+    <p>האפליקציה שירדן לא ביקש</p>
   </header>
 
   <div id="stage">
-    <div id="yarden-container">
-      <div id="costume"></div>
-      <img id="yarden-img" src="yarden.jpg" alt="ירדן" crossorigin>
-      <div id="belly"></div>
-      <div id="speech"></div>
-    </div>
+    <canvas id="gameCanvas"></canvas>
+    <div id="score">נקודות: <span id="scoreVal">0</span></div>
+    <div id="speech"></div>
+    <div id="combo"></div>
   </div>
 
   <div id="controls">
-    <button class="btn" onclick="doAction('cake')"><span class="emoji">🎂</span> זרוק עוגה</button>
-    <button class="btn" onclick="doAction('egg')"><span class="emoji">🥚</span> זרוק ביצה</button>
-    <button class="btn" onclick="doAction('tomato')"><span class="emoji">🍅</span> עגבניה בפרצוף</button>
+    <button class="btn" onclick="doAction('cake')"><span class="emoji">🎂</span> עוגה</button>
+    <button class="btn" onclick="doAction('egg')"><span class="emoji">🥚</span> ביצה</button>
+    <button class="btn" onclick="doAction('tomato')"><span class="emoji">🍅</span> עגבניה</button>
     <button class="btn" onclick="doAction('slap')"><span class="emoji">👋</span> סטירה</button>
-    <button class="btn" onclick="doAction('fat')"><span class="emoji">🍔</span> השמן אותו</button>
-    <button class="btn" onclick="doAction('tiny')"><span class="emoji">🔬</span> הקטן אותו</button>
+    <button class="btn" onclick="doAction('poop')"><span class="emoji">💩</span> קקי</button>
+    <button class="btn" onclick="doAction('paint')"><span class="emoji">🎨</span> צבע</button>
+    <button class="btn" onclick="doAction('mud')"><span class="emoji">🟤</span> בוץ</button>
     <button class="btn" onclick="doAction('spin')"><span class="emoji">🌀</span> סחרחורת</button>
-    <button class="btn" onclick="doAction('flip')"><span class="emoji">🙃</span> הפוך אותו</button>
-    <button class="btn" onclick="doAction('rainbow')"><span class="emoji">🌈</span> רינבואו</button>
-    <button class="btn" onclick="doAction('crown')"><span class="emoji">👑</span> מלך השוטים</button>
-    <button class="btn" onclick="doAction('clown')"><span class="emoji">🤡</span> ליצן</button>
-    <button class="btn" onclick="doAction('diaper')"><span class="emoji">👶</span> חיתול</button>
-    <button class="btn" onclick="doAction('poop')"><span class="emoji">💩</span> קקי על הראש</button>
-    <button class="btn" onclick="doAction('inflate')"><span class="emoji">🎈</span> נפח אותו</button>
-    <button class="btn" onclick="doAction('explode')"><span class="emoji">💥</span> פוצץ אותו</button>
-    <button class="btn" onclick="doAction('jelly')"><span class="emoji">🍮</span> ג׳לי</button>
-    <button class="btn" onclick="doAction('shower')"><span class="emoji">🚿</span> מקלחת קרה</button>
-    <button class="btn" onclick="doAction('money')"><span class="emoji">💸</span> גשם כסף</button>
+    <button class="btn" onclick="doAction('inflate')"><span class="emoji">🎈</span> נפח</button>
+    <button class="btn" onclick="doAction('shower')"><span class="emoji">🚿</span> מקלחת</button>
     <button class="btn" onclick="doAction('fart')"><span class="emoji">💨</span> נפיחה</button>
-    <button class="btn" onclick="doAction('kiss')"><span class="emoji">💋</span> נשיקה רטובה</button>
+    <button class="btn" onclick="doAction('fire')"><span class="emoji">🔥</span> אש</button>
+    <button class="btn" onclick="doAction('freeze')"><span class="emoji">🧊</span> הקפא</button>
+    <button class="btn" onclick="doAction('electric')"><span class="emoji">⚡</span> חשמל</button>
+    <button class="btn" onclick="doAction('explode')"><span class="emoji">💥</span> פיצוץ</button>
     <button class="btn" onclick="doAction('reset')"><span class="emoji">🔄</span> איפוס</button>
   </div>
 </div>
 
-<div id="score">נקודות השפלה: <span id="scoreVal">0</span></div>
-<div id="combo"></div>
-<div id="flash"></div>
-
 <script>
-const img = document.getElementById('yarden-img');
-const container = document.getElementById('yarden-container');
-const speech = document.getElementById('speech');
-const costume = document.getElementById('costume');
-const belly = document.getElementById('belly');
-const stage = document.getElementById('stage');
+// ============ CANVAS SETUP ============
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const stageEl = document.getElementById('stage');
+const speechEl = document.getElementById('speech');
 const comboEl = document.getElementById('combo');
-const flash = document.getElementById('flash');
-const scoreEl = document.getElementById('scoreVal');
+const scoreValEl = document.getElementById('scoreVal');
 
-let score = 0;
-let combo = 0;
-let comboTimer = null;
-let activeEffects = new Set();
+let W, H;
+function resize() {
+  const rect = stageEl.getBoundingClientRect();
+  W = canvas.width = rect.width * devicePixelRatio;
+  H = canvas.height = rect.height * devicePixelRatio;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+}
+window.addEventListener('resize', resize);
+resize();
 
-// Sound synthesis
+// ============ LOAD FACE ============
+const faceImg = new Image();
+faceImg.src = 'yarden.jpg';
+let faceLoaded = false;
+faceImg.onload = () => { faceLoaded = true; };
+
+// ============ PHYSICS DOLL ============
+const doll = {
+  x: 0, y: 0, vx: 0, vy: 0, angle: 0, angVel: 0,
+  scale: 1, targetScale: 1,
+  grabbed: false, grabOffX: 0, grabOffY: 0,
+  // Body proportions (relative to center)
+  bodyW: 70, bodyH: 120, headR: 45, bellyR: 55,
+  fatness: 1.4, // >1 = fatter
+  stinkAlpha: 0, // green stink lines
+  splatters: [], // persistent stains {x,y,r,color}
+  frozen: false, frozenTimer: 0,
+  onFire: false, fireTimer: 0,
+  electro: false, electroTimer: 0,
+  spinExtra: 0,
+  inflateAmount: 0,
+  exploded: false, explodeTimer: 0,
+  hairParticles: [], // body hair positions
+};
+
+// Generate body hair positions
+function genHair() {
+  doll.hairParticles = [];
+  for (let i = 0; i < 40; i++) {
+    doll.hairParticles.push({
+      x: (Math.random() - 0.5) * doll.bodyW * 1.8,
+      y: (Math.random() - 0.3) * doll.bodyH * 1.6,
+      len: 4 + Math.random() * 8,
+      angle: Math.random() * Math.PI * 2,
+    });
+  }
+}
+genHair();
+
+function resetDoll() {
+  const sw = W / devicePixelRatio;
+  const sh = H / devicePixelRatio;
+  doll.x = sw / 2; doll.y = sh / 2;
+  doll.vx = 0; doll.vy = 0; doll.angle = 0; doll.angVel = 0;
+  doll.scale = 1; doll.targetScale = 1;
+  doll.fatness = 1.4; doll.stinkAlpha = 0.6;
+  doll.splatters = []; doll.frozen = false; doll.onFire = false;
+  doll.electro = false; doll.spinExtra = 0; doll.inflateAmount = 0;
+  doll.exploded = false;
+}
+
+// Wait for face to load then reset
+faceImg.onload = () => { faceLoaded = true; resetDoll(); };
+setTimeout(() => { if (!faceLoaded) resetDoll(); }, 500);
+
+// ============ PROJECTILES ============
+let projectiles = []; // {x,y,vx,vy,emoji,size,rotation,type,color}
+let particles = []; // {x,y,vx,vy,life,maxLife,size,color,emoji}
+let stinkWaves = []; // {x,y,life,maxLife}
+
+// ============ AUDIO ============
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
 function playSound(type) {
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.connect(g); g.connect(audioCtx.destination);
+  const t = audioCtx.currentTime;
   switch(type) {
     case 'splat':
-      osc.frequency.setValueAtTime(200, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.3);
-      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-      osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-      break;
+      o.frequency.setValueAtTime(200,t); o.frequency.exponentialRampToValueAtTime(50,t+0.3);
+      g.gain.setValueAtTime(0.3,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.3);
+      o.start(t); o.stop(t+0.3); break;
     case 'slap':
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.15);
-      gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-      osc.start(); osc.stop(audioCtx.currentTime + 0.15);
-      break;
+      o.type='sawtooth'; o.frequency.setValueAtTime(800,t); o.frequency.exponentialRampToValueAtTime(100,t+0.15);
+      g.gain.setValueAtTime(0.4,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.15);
+      o.start(t); o.stop(t+0.15); break;
     case 'boing':
-      osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
-      osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.3);
-      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-      osc.start(); osc.stop(audioCtx.currentTime + 0.4);
-      break;
+      o.frequency.setValueAtTime(150,t); o.frequency.exponentialRampToValueAtTime(600,t+0.1);
+      o.frequency.exponentialRampToValueAtTime(150,t+0.3);
+      g.gain.setValueAtTime(0.3,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.4);
+      o.start(t); o.stop(t+0.4); break;
     case 'fart':
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(80, audioCtx.currentTime);
-      osc.frequency.linearRampToValueAtTime(60, audioCtx.currentTime + 0.5);
-      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-      osc.start(); osc.stop(audioCtx.currentTime + 0.5);
-      break;
-    case 'pop':
-      osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
-      gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-      osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-      break;
-    case 'woosh':
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.2);
-      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-      osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-      break;
-    case 'kiss':
-      osc.frequency.setValueAtTime(500, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(1500, audioCtx.currentTime + 0.05);
-      osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
-      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-      osc.start(); osc.stop(audioCtx.currentTime + 0.15);
-      break;
+      o.type='sawtooth'; o.frequency.setValueAtTime(80,t); o.frequency.linearRampToValueAtTime(40,t+0.8);
+      g.gain.setValueAtTime(0.25,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.8);
+      o.start(t); o.stop(t+0.8); break;
     case 'boom':
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(100, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime + 0.5);
-      gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-      osc.start(); osc.stop(audioCtx.currentTime + 0.5);
-      break;
-    case 'money':
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-      osc.frequency.setValueAtTime(1000, audioCtx.currentTime + 0.1);
-      osc.frequency.setValueAtTime(1200, audioCtx.currentTime + 0.2);
-      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-      osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-      break;
+      o.type='sawtooth'; o.frequency.setValueAtTime(100,t); o.frequency.exponentialRampToValueAtTime(20,t+0.5);
+      g.gain.setValueAtTime(0.5,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.5);
+      o.start(t); o.stop(t+0.5); break;
+    case 'sizzle':
+      o.type='sawtooth'; o.frequency.setValueAtTime(3000,t); o.frequency.exponentialRampToValueAtTime(500,t+0.4);
+      g.gain.setValueAtTime(0.15,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.4);
+      o.start(t); o.stop(t+0.4); break;
+    case 'zap':
+      o.type='square'; o.frequency.setValueAtTime(200,t);
+      o.frequency.setValueAtTime(2000,t+0.05); o.frequency.setValueAtTime(200,t+0.1);
+      o.frequency.setValueAtTime(3000,t+0.15);
+      g.gain.setValueAtTime(0.3,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.25);
+      o.start(t); o.stop(t+0.25); break;
+    case 'freeze':
+      o.type='triangle'; o.frequency.setValueAtTime(2000,t); o.frequency.exponentialRampToValueAtTime(500,t+0.3);
+      g.gain.setValueAtTime(0.2,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.3);
+      o.start(t); o.stop(t+0.3); break;
+    case 'woosh':
+      o.frequency.setValueAtTime(300,t); o.frequency.exponentialRampToValueAtTime(1200,t+0.2);
+      g.gain.setValueAtTime(0.2,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.3);
+      o.start(t); o.stop(t+0.3); break;
   }
 }
 
+// ============ REACTIONS ============
 const REACTIONS = {
-  cake: ['אוייי לא העוגה!', 'יא חיות!!', 'השמנתי עוד קילו!', 'עוגה? אני בדיאטה!!', 'למה דווקא בפרצוף?!'],
-  egg: ['ביצה?! באמת?!', 'אני מסריח עכשיו!', 'יא מטורפים!', 'עידן אני יודע שזה אתה!!'],
-  tomato: ['רוטב עגבניות חינם!', 'פאק!! הוכתם!', 'אני נראה כמו פיצה!', 'עגבנייייה!'],
-  slap: ['אאוץ׳!!!', 'למה??!', 'סטירה?! אני אתבע!', 'יא ברוטלי!', 'הלחי שלי!!'],
-  fat: ['אני לא שמן! אני בונה!', 'עוד המבורגר?', 'הכרס שלי!!', 'אני מתפוצץ!', 'דיאטה מחר...'],
-  tiny: ['אני קטנטןןןן!', 'מי הקטין אותי?!', 'אני גמד!', 'תחזירו אותי!!'],
-  spin: ['אני מסתחרררר!', 'עצרו את העולם!', 'הולך להקיא!', 'סחרחורתתת!'],
-  flip: ['!הפוך אני', 'העולם מסתובב!', 'הדם עולה לראש!', 'תהפכו אותי בחזרה!!'],
-  rainbow: ['אני צבעונייייי!', 'יוניקורן ירדן!', 'גאווה!', 'נראה כמו סוכריה!'],
-  crown: ['אני המלך!', 'כרעו ברך!', 'מלך של מה? של כלום!', 'כתר!! סוף סוף!'],
-  clown: ['אני לא ליצן!', 'הונק הונק!', 'ביפ ביפ!', 'ליצן? אני CEO!'],
-  diaper: ['חיתול?! אני בן 26!', 'מי שם לי חיתול?!', 'אני תינוק?!', 'גואהההה!!'],
-  poop: ['קקי?? על הראש שלי?!', 'פאק זה מסריח!', 'למהההה!', 'אני הולך להתקלח!'],
-  inflate: ['אני מתנפחחחח!', 'עוד שנייה אני מתפוצץ!', 'אני בלון!', 'עזרהההה!'],
-  explode: ['בוווווום!!!', '💥💥💥', 'אני התפוצצתי!', 'RIP ירדן'],
-  jelly: ['אני רועדדדד!', 'ג׳לי ירדן!', 'תפסיקו לרעוד אותי!', 'בלוב בלוב!'],
-  shower: ['קרררר!!!', 'מקלחת קפואה!', 'אני רטובבב!', 'תביאו מגבת!!'],
-  money: ['כסף!! תמשיכו!', 'אני עשיר!', 'עוד! עוד כסף!', 'זה מזויף נכון?'],
-  fart: ['מי עשה?!', 'פששששש', 'זה לא אני!!', 'אוויר מקולקל!', 'סליחהההה'],
-  kiss: ['בלעעע!', 'נשיקה?! ממי?!', 'רטובבב!', 'אל תנשקו אותי!', 'חחחח עזבו!'],
+  cake:['אוייי לא העוגה!','יא חיות!!','השמנתי עוד קילו!','למה בפרצוף?!'],
+  egg:['ביצה?! באמת?!','אני מסריח!','יא מטורפים!','זה נדבק לשיער!'],
+  tomato:['רוטב חינם!','פאק!! הוכתם!','אני כמו פיצה!','עגבנייייה!'],
+  slap:['אאאוץ׳!!!','למה??!','הלחי שלי בוערת!!','יא ברוטלי!'],
+  poop:['קקי?? על הראש?!','מסריח!!','למהההה!','אני צריך מקלחת!','פאק פאק פאק!'],
+  paint:['נצבעתי!!','אני ציור!','מי עשה את זה?!','זה לא יורד!!'],
+  mud:['בוץ!! בלעעע!','אני מלוכלך!','זה נכנס לאוזניים!','תעזרו!!'],
+  spin:['מסתחרררר!','עצרו!!','הולך להקיא!','העולם מסתובב!'],
+  inflate:['אני מתנפחחח!','עוד שנייה פוצץ!','אני בלון!','עזרהה!'],
+  shower:['קרררר!!!','רטובבב!','תביאו מגבת!!','המים קפואים!'],
+  fart:['מי עשה?!','פששששש!','זה לא אני!!','הסירחון!!','אוויר רעיל!'],
+  fire:['אני נשרף!!','חם חם חם!!','כבו אותי!!','אש אש אש!!'],
+  freeze:['קפאתי!!','ק-ק-קר!!','אני קרחון!','תפשירו אותי!!'],
+  electric:['בזזזז!!','חשמל!!','אני רועד!!','כמה וולט?!'],
+  explode:['בוווום!!!','RIP ירדן!','התפוצצתי!','💥💥💥'],
 };
+let score = 0, combo = 0, comboTimer = null;
 
 function say(action) {
-  const options = REACTIONS[action] || ['מה עושים לי?!'];
-  const text = options[Math.floor(Math.random() * options.length)];
-  speech.textContent = text;
-  speech.classList.add('show');
-  setTimeout(() => speech.classList.remove('show'), 2000);
+  const opts = REACTIONS[action] || ['מה?!'];
+  speechEl.textContent = opts[Math.floor(Math.random() * opts.length)];
+  const sw = W/devicePixelRatio;
+  speechEl.style.left = (doll.x) + 'px';
+  speechEl.style.top = (doll.y - 120 * doll.scale) + 'px';
+  speechEl.style.transform = 'translateX(-50%)';
+  speechEl.classList.add('show');
+  clearTimeout(speechEl._t);
+  speechEl._t = setTimeout(() => speechEl.classList.remove('show'), 2000);
 }
 
 function addScore(pts) {
-  score += pts;
-  scoreEl.textContent = score;
-  combo++;
-  clearTimeout(comboTimer);
-  comboTimer = setTimeout(() => { combo = 0; }, 2000);
-  
+  score += pts; scoreValEl.textContent = score;
+  combo++; clearTimeout(comboTimer);
+  comboTimer = setTimeout(() => combo = 0, 2000);
   if (combo >= 3) {
     comboEl.textContent = `קומבו x${combo}! 🔥`;
     comboEl.classList.add('show');
     setTimeout(() => comboEl.classList.remove('show'), 1000);
-    score += combo * 5;
-    scoreEl.textContent = score;
+    score += combo * 5; scoreValEl.textContent = score;
   }
 }
 
-function spawnParticles(emoji, count = 8) {
-  const rect = img.getBoundingClientRect();
-  const cx = rect.left + rect.width/2;
-  const cy = rect.top + rect.height/2;
-  for (let i = 0; i < count; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    p.textContent = emoji;
-    const angle = (Math.PI * 2 / count) * i;
-    const dist = 100 + Math.random() * 100;
-    p.style.left = cx + 'px';
-    p.style.top = cy + 'px';
-    p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
-    p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
-    document.body.appendChild(p);
-    setTimeout(() => p.remove(), 1000);
+// ============ THROW PROJECTILE ============
+function throwProjectile(type) {
+  const sw = W/devicePixelRatio, sh = H/devicePixelRatio;
+  const side = Math.random() > 0.5;
+  const sx = side ? -30 : sw + 30;
+  const sy = Math.random() * sh * 0.4;
+  const speed = 12 + Math.random() * 6;
+  const dx = doll.x - sx, dy = doll.y - sy;
+  const dist = Math.sqrt(dx*dx + dy*dy);
+
+  const emojis = { cake:'🎂', egg:'🥚', tomato:'🍅', poop:'💩', paint:'🎨', mud:'🟤' };
+  const colors = {
+    cake:'rgba(255,220,150,0.7)', egg:'rgba(255,255,180,0.7)',
+    tomato:'rgba(220,40,30,0.6)', poop:'rgba(120,80,30,0.7)',
+    paint: `hsla(${Math.random()*360},80%,50%,0.6)`,
+    mud:'rgba(100,70,40,0.7)',
+  };
+
+  projectiles.push({
+    x: sx, y: sy,
+    vx: dx/dist * speed, vy: dy/dist * speed,
+    emoji: emojis[type] || '●',
+    size: 35, rotation: 0,
+    type, color: colors[type] || 'rgba(200,200,200,0.5)',
+  });
+}
+
+// ============ SPLATTER ON HIT ============
+function splatOnDoll(proj) {
+  // Add persistent splatter relative to doll center
+  const rx = (proj.x - doll.x) / doll.scale;
+  const ry = (proj.y - doll.y) / doll.scale;
+  const r = 15 + Math.random() * 25;
+  doll.splatters.push({ x: rx, y: ry, r, color: proj.color, alpha: 0.8 });
+  // Sub-splatters
+  for (let i = 0; i < 4; i++) {
+    doll.splatters.push({
+      x: rx + (Math.random()-0.5) * 50,
+      y: ry + (Math.random()-0.5) * 50,
+      r: 5 + Math.random() * 12,
+      color: proj.color, alpha: 0.6,
+    });
+  }
+  // Burst particles
+  for (let i = 0; i < 12; i++) {
+    const a = Math.PI * 2 * i / 12;
+    const sp = 2 + Math.random() * 4;
+    particles.push({
+      x: proj.x, y: proj.y,
+      vx: Math.cos(a)*sp, vy: Math.sin(a)*sp,
+      life: 40, maxLife: 40, size: 4 + Math.random()*6,
+      color: proj.color,
+    });
+  }
+  // Push doll
+  doll.vx += proj.vx * 0.3;
+  doll.vy += proj.vy * 0.3;
+  doll.angVel += (Math.random()-0.5) * 0.1;
+}
+
+// ============ STINK WAVES ============
+function emitStink() {
+  if (doll.stinkAlpha > 0.1) {
+    stinkWaves.push({ x: doll.x, y: doll.y - 20, life: 60, maxLife: 60 });
   }
 }
 
-function throwAt(emoji, splatColor) {
-  const rect = img.getBoundingClientRect();
-  const startX = Math.random() > 0.5 ? -50 : window.innerWidth + 50;
-  const startY = Math.random() * window.innerHeight * 0.5;
-  const endX = rect.left + rect.width/2 - 25;
-  const endY = rect.top + rect.height/2 - 25;
+// ============ TOUCH / MOUSE DRAG ============
+let pointer = { down: false, x: 0, y: 0, prevX: 0, prevY: 0 };
 
-  const obj = document.createElement('div');
-  obj.className = 'flying-obj';
-  obj.textContent = emoji;
-  obj.style.left = startX + 'px';
-  obj.style.top = startY + 'px';
-  obj.style.transition = 'all 0.4s ease-in';
-  document.body.appendChild(obj);
+function getPos(e) {
+  const r = canvas.getBoundingClientRect();
+  const t = e.touches ? e.touches[0] : e;
+  return { x: t.clientX - r.left, y: t.clientY - r.top };
+}
 
-  requestAnimationFrame(() => {
-    obj.style.left = endX + 'px';
-    obj.style.top = endY + 'px';
-    obj.style.transform = 'rotate(720deg)';
+function hitTest(px, py) {
+  const dx = px - doll.x, dy = py - doll.y;
+  const hw = (doll.bodyW * doll.fatness + 20) * doll.scale;
+  const hh = (doll.bodyH + doll.headR + 20) * doll.scale;
+  return Math.abs(dx) < hw && Math.abs(dy) < hh;
+}
+
+canvas.addEventListener('mousedown', e => { onDown(getPos(e)); });
+canvas.addEventListener('mousemove', e => { onMove(getPos(e)); });
+canvas.addEventListener('mouseup', e => { onUp(getPos(e)); });
+canvas.addEventListener('touchstart', e => { e.preventDefault(); onDown(getPos(e)); }, { passive: false });
+canvas.addEventListener('touchmove', e => { e.preventDefault(); onMove(getPos(e)); }, { passive: false });
+canvas.addEventListener('touchend', e => { e.preventDefault(); onUp(pointer); }, { passive: false });
+
+function onDown(p) {
+  pointer.down = true; pointer.x = p.x; pointer.y = p.y;
+  pointer.prevX = p.x; pointer.prevY = p.y;
+  if (hitTest(p.x, p.y)) {
+    doll.grabbed = true;
+    doll.grabOffX = doll.x - p.x;
+    doll.grabOffY = doll.y - p.y;
+    doll.vx = 0; doll.vy = 0;
+  }
+}
+
+function onMove(p) {
+  if (!pointer.down) return;
+  pointer.prevX = pointer.x; pointer.prevY = pointer.y;
+  pointer.x = p.x; pointer.y = p.y;
+  if (doll.grabbed && !doll.frozen) {
+    doll.x = p.x + doll.grabOffX;
+    doll.y = p.y + doll.grabOffY;
+  }
+}
+
+function onUp(p) {
+  if (doll.grabbed) {
+    // Fling!
+    doll.vx = (pointer.x - pointer.prevX) * 2;
+    doll.vy = (pointer.y - pointer.prevY) * 2;
+    doll.angVel = doll.vx * 0.02;
+    doll.grabbed = false;
+  }
+  pointer.down = false;
+}
+
+// ============ DRAW DOLL ============
+function drawDoll(dt) {
+  if (doll.exploded) return;
+  
+  const s = doll.scale;
+  const fat = doll.fatness + doll.inflateAmount;
+  
+  ctx.save();
+  ctx.translate(doll.x, doll.y);
+  ctx.rotate(doll.angle + doll.spinExtra);
+  ctx.scale(s, s);
+
+  // === LEGS ===
+  ctx.fillStyle = '#5c4033';
+  ctx.beginPath();
+  ctx.ellipse(-25*fat, 90, 18*fat, 35, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(25*fat, 90, 18*fat, 35, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // === BODY (fat, hairy) ===
+  const bw = doll.bodyW * fat;
+  const bh = doll.bodyH;
+  // Skin color
+  ctx.fillStyle = '#d4a574';
+  ctx.beginPath();
+  ctx.ellipse(0, 10, bw, bh * 0.7, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // Belly (big round)
+  const bellyR = doll.bellyR * fat * 1.2;
+  ctx.fillStyle = '#d4a574';
+  ctx.beginPath();
+  ctx.ellipse(0, 35, bellyR, bellyR * 0.9, 0, 0, Math.PI*2);
+  ctx.fill();
+  // Belly button
+  ctx.fillStyle = '#b8845a';
+  ctx.beginPath();
+  ctx.ellipse(0, 40, 4, 6, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // === BODY HAIR ===
+  ctx.strokeStyle = 'rgba(60,40,20,0.6)';
+  ctx.lineWidth = 1.5;
+  doll.hairParticles.forEach(h => {
+    ctx.beginPath();
+    ctx.moveTo(h.x * fat, h.y);
+    ctx.lineTo(
+      h.x * fat + Math.cos(h.angle) * h.len,
+      h.y + Math.sin(h.angle) * h.len
+    );
+    ctx.stroke();
   });
 
-  setTimeout(() => {
-    obj.remove();
-    // Splat
-    if (splatColor) {
-      const splat = document.createElement('div');
-      splat.className = 'splat';
-      splat.style.background = splatColor;
-      splat.style.left = (rect.width/2 - 60 + Math.random()*40-20) + 'px';
-      splat.style.top = (rect.height/2 - 60 + Math.random()*40-20) + 'px';
-      container.appendChild(splat);
-      setTimeout(() => splat.remove(), 3000);
+  // === ARMS ===
+  ctx.fillStyle = '#d4a574';
+  ctx.beginPath();
+  ctx.ellipse(-bw - 10, -10, 16*fat, 45, -0.2, 0, Math.PI*2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(bw + 10, -10, 16*fat, 45, 0.2, 0, Math.PI*2);
+  ctx.fill();
+
+  // === FACE (cropped photo) ===
+  const headY = -75;
+  const headR = doll.headR;
+  if (faceLoaded) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(0, headY, headR, headR * 1.1, 0, 0, Math.PI*2);
+    ctx.clip();
+    // Draw face image centered on head
+    const imgSize = headR * 2.4;
+    ctx.drawImage(faceImg, -imgSize/2, headY - imgSize/2 - 5, imgSize, imgSize);
+    ctx.restore();
+  } else {
+    ctx.fillStyle = '#d4a574';
+    ctx.beginPath();
+    ctx.ellipse(0, headY, headR, headR * 1.1, 0, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  // === SPLATTERS (persistent stains) ===
+  doll.splatters.forEach(sp => {
+    ctx.save();
+    ctx.globalAlpha = sp.alpha;
+    ctx.fillStyle = sp.color;
+    ctx.beginPath();
+    // Irregular splat shape
+    for (let i = 0; i < 8; i++) {
+      const a = Math.PI * 2 * i / 8;
+      const r = sp.r * (0.7 + Math.random() * 0.3);
+      const px = sp.x + Math.cos(a) * r;
+      const py = sp.y + Math.sin(a) * r;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
     }
-    // Shake
-    container.style.animation = 'shake 0.3s ease';
-    setTimeout(() => container.style.animation = '', 300);
-    spawnParticles(emoji, 6);
-  }, 400);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  });
+
+  // === FIRE EFFECT ===
+  if (doll.onFire) {
+    for (let i = 0; i < 8; i++) {
+      const fx = (Math.random()-0.5) * bw * 2;
+      const fy = (Math.random()-0.5) * bh * 1.5;
+      const fr = 8 + Math.random() * 15;
+      const grad = ctx.createRadialGradient(fx, fy, 0, fx, fy, fr);
+      grad.addColorStop(0, 'rgba(255,200,0,0.8)');
+      grad.addColorStop(0.5, 'rgba(255,100,0,0.5)');
+      grad.addColorStop(1, 'rgba(255,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(fx, fy, fr, 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+
+  // === FROZEN EFFECT ===
+  if (doll.frozen) {
+    ctx.fillStyle = 'rgba(150,200,255,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(0, 10, bw + 10, bh * 0.7 + 10, 0, 0, Math.PI*2);
+    ctx.fill();
+    // Ice crystals
+    ctx.strokeStyle = 'rgba(200,230,255,0.6)';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 6; i++) {
+      const ix = (Math.random()-0.5) * bw * 2;
+      const iy = (Math.random()-0.5) * bh * 1.4;
+      ctx.beginPath();
+      ctx.moveTo(ix - 5, iy); ctx.lineTo(ix + 5, iy);
+      ctx.moveTo(ix, iy - 5); ctx.lineTo(ix, iy + 5);
+      ctx.stroke();
+    }
+  }
+
+  // === ELECTRIC EFFECT ===
+  if (doll.electro) {
+    ctx.strokeStyle = `rgba(100,200,255,${0.5 + Math.random()*0.5})`;
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 5; i++) {
+      ctx.beginPath();
+      let lx = (Math.random()-0.5) * bw * 2;
+      let ly = (Math.random()-0.5) * bh * 1.5;
+      ctx.moveTo(lx, ly);
+      for (let j = 0; j < 4; j++) {
+        lx += (Math.random()-0.5) * 30;
+        ly += (Math.random()-0.5) * 30;
+        ctx.lineTo(lx, ly);
+      }
+      ctx.stroke();
+    }
+  }
+
+  ctx.restore();
+
+  // === STINK CLOUDS (outside doll transform) ===
+  if (doll.stinkAlpha > 0.1) {
+    ctx.save();
+    stinkWaves.forEach(sw => {
+      const progress = 1 - sw.life / sw.maxLife;
+      const alpha = (1 - progress) * doll.stinkAlpha * 0.4;
+      ctx.strokeStyle = `rgba(100,200,50,${alpha})`;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      // Wavy lines going up
+      for (let i = 0; i < 3; i++) {
+        const ox = (i - 1) * 25;
+        ctx.beginPath();
+        for (let y = 0; y < 40; y += 5) {
+          const wx = sw.x + ox + Math.sin((y + progress * 50) * 0.2) * 10;
+          const wy = sw.y - y - progress * 60;
+          if (y === 0) ctx.moveTo(wx, wy);
+          else ctx.lineTo(wx, wy);
+        }
+        ctx.stroke();
+      }
+    });
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
 }
 
-function flashScreen() {
-  flash.style.opacity = '0.7';
-  setTimeout(() => flash.style.opacity = '0', 100);
+// ============ PHYSICS UPDATE ============
+function updatePhysics(dt) {
+  const sw = W/devicePixelRatio, sh = H/devicePixelRatio;
+  
+  if (!doll.grabbed && !doll.frozen) {
+    // Gravity
+    doll.vy += 0.4;
+    doll.x += doll.vx;
+    doll.y += doll.vy;
+    doll.angle += doll.angVel;
+    doll.angVel *= 0.97;
+    doll.vx *= 0.99;
+
+    // Bounce off walls
+    const margin = 60;
+    if (doll.x < margin) { doll.x = margin; doll.vx = Math.abs(doll.vx) * 0.6; }
+    if (doll.x > sw - margin) { doll.x = sw - margin; doll.vx = -Math.abs(doll.vx) * 0.6; }
+    // Floor
+    const floor = sh - 80;
+    if (doll.y > floor) {
+      doll.y = floor; doll.vy = -Math.abs(doll.vy) * 0.4;
+      doll.angVel *= 0.8;
+      if (Math.abs(doll.vy) < 1) { doll.vy = 0; doll.angle *= 0.95; }
+    }
+    if (doll.y < margin) { doll.y = margin; doll.vy = Math.abs(doll.vy) * 0.6; }
+  }
+  
+  // Scale lerp
+  doll.scale += (doll.targetScale - doll.scale) * 0.1;
+
+  // Spin effect
+  if (doll.spinExtra !== 0 && !doll.frozen) {
+    doll.spinExtra += 0.2;
+    if (doll.spinExtra > Math.PI * 20) doll.spinExtra = 0;
+  }
+
+  // Timers
+  if (doll.frozen) { doll.frozenTimer--; if (doll.frozenTimer <= 0) doll.frozen = false; }
+  if (doll.onFire) { doll.fireTimer--; if (doll.fireTimer <= 0) doll.onFire = false; }
+  if (doll.electro) { doll.electroTimer--; if (doll.electroTimer <= 0) doll.electro = false; }
+  if (doll.exploded) { doll.explodeTimer--; if (doll.explodeTimer <= 0) { doll.exploded = false; doll.targetScale = 1; } }
+  if (doll.inflateAmount > 0 && !doll._inflating) doll.inflateAmount *= 0.99;
 }
 
-function rain(emoji, count = 20) {
+// ============ UPDATE PROJECTILES ============
+function updateProjectiles() {
+  projectiles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    p.vy += 0.15;
+    p.rotation += 0.1;
+  });
+
+  // Check hits
+  projectiles = projectiles.filter(p => {
+    const dx = p.x - doll.x, dy = p.y - doll.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < 80 * doll.scale) {
+      splatOnDoll(p);
+      playSound('splat');
+      return false;
+    }
+    // Off screen
+    const sw = W/devicePixelRatio, sh = H/devicePixelRatio;
+    return p.x > -50 && p.x < sw + 50 && p.y < sh + 50;
+  });
+}
+
+// ============ UPDATE PARTICLES ============
+function updateParticles() {
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    p.vy += 0.1; p.life--;
+  });
+  particles = particles.filter(p => p.life > 0);
+
+  stinkWaves.forEach(s => s.life--);
+  stinkWaves = stinkWaves.filter(s => s.life > 0);
+}
+
+// ============ DRAW PROJECTILES ============
+function drawProjectiles() {
+  projectiles.forEach(p => {
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rotation);
+    ctx.font = `${p.size}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(p.emoji, 0, 0);
+    // Motion trail
+    ctx.globalAlpha = 0.3;
+    ctx.fillText(p.emoji, -p.vx*0.5, -p.vy*0.5);
+    ctx.restore();
+  });
+}
+
+// ============ DRAW PARTICLES ============
+function drawParticles() {
+  particles.forEach(p => {
+    const alpha = p.life / p.maxLife;
+    ctx.globalAlpha = alpha;
+    if (p.emoji) {
+      ctx.font = `${p.size}px serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(p.emoji, p.x, p.y);
+    } else {
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI*2);
+      ctx.fill();
+    }
+  });
+  ctx.globalAlpha = 1;
+}
+
+// ============ RAIN EFFECT ============
+let rainDrops = [];
+function startRain(emoji, count, duration) {
+  const sw = W/devicePixelRatio;
   for (let i = 0; i < count; i++) {
     setTimeout(() => {
-      const p = document.createElement('div');
-      p.style.position = 'fixed';
-      p.style.left = Math.random() * 100 + 'vw';
-      p.style.top = '-40px';
-      p.style.fontSize = '30px';
-      p.style.zIndex = '50';
-      p.style.pointerEvents = 'none';
-      p.style.transition = 'all 1.5s ease-in';
-      p.textContent = emoji;
-      document.body.appendChild(p);
-      requestAnimationFrame(() => {
-        p.style.top = '110vh';
-        p.style.transform = `rotate(${Math.random()*720}deg)`;
+      rainDrops.push({
+        x: Math.random() * sw, y: -20,
+        vy: 3 + Math.random() * 4,
+        emoji, life: 120,
       });
-      setTimeout(() => p.remove(), 2000);
-    }, i * 80);
+    }, i * (duration / count));
   }
 }
 
-function clearEffects() {
-  img.className = '';
-  costume.className = '';
-  costume.textContent = '';
-  belly.className = '';
-  belly.textContent = '';
-  activeEffects.clear();
+function updateRain() {
+  rainDrops.forEach(d => { d.y += d.vy; d.life--; });
+  rainDrops = rainDrops.filter(d => d.life > 0);
 }
 
+function drawRain() {
+  rainDrops.forEach(d => {
+    ctx.font = '24px serif';
+    ctx.textAlign = 'center';
+    ctx.globalAlpha = d.life / 120;
+    ctx.fillText(d.emoji, d.x, d.y);
+  });
+  ctx.globalAlpha = 1;
+}
+
+// ============ ACTIONS ============
+let stinkInterval = null;
 function doAction(action) {
+  if (action === 'reset') {
+    resetDoll(); projectiles = []; particles = []; rainDrops = []; stinkWaves = [];
+    score = 0; combo = 0; scoreValEl.textContent = '0';
+    clearInterval(stinkInterval);
+    stinkInterval = setInterval(emitStink, 500);
+    return;
+  }
+
   say(action);
-  
+
   switch(action) {
-    case 'cake':
-      throwAt('🎂', 'rgba(255,200,100,0.6)');
-      playSound('splat');
-      addScore(10);
-      break;
-    case 'egg':
-      throwAt('🥚', 'rgba(255,255,200,0.6)');
-      playSound('splat');
-      addScore(10);
-      break;
-    case 'tomato':
-      throwAt('🍅', 'rgba(255,50,50,0.5)');
-      playSound('splat');
+    case 'cake': case 'egg': case 'tomato': case 'poop': case 'paint': case 'mud':
+      throwProjectile(action);
       addScore(15);
+      if (action === 'poop') doll.stinkAlpha = Math.min(1, doll.stinkAlpha + 0.3);
       break;
+
     case 'slap':
-      flashScreen();
       playSound('slap');
-      container.style.animation = 'shake 0.3s ease';
-      setTimeout(() => container.style.animation = '', 300);
-      spawnParticles('👋', 4);
-      spawnParticles('⭐', 6);
+      doll.vx += (Math.random() > 0.5 ? 1 : -1) * 15;
+      doll.vy -= 5;
+      doll.angVel += (Math.random()-0.5) * 0.3;
+      // Star particles
+      for (let i = 0; i < 8; i++) {
+        const a = Math.PI * 2 * i / 8;
+        particles.push({
+          x: doll.x, y: doll.y - 50,
+          vx: Math.cos(a)*5, vy: Math.sin(a)*5,
+          life: 30, maxLife: 30, size: 20, emoji: '⭐'
+        });
+      }
       addScore(20);
       break;
-    case 'fat':
-      clearEffects();
-      img.classList.add('fat');
-      belly.textContent = '🍔';
-      belly.classList.add('show');
-      activeEffects.add('fat');
-      playSound('boing');
-      addScore(15);
-      break;
-    case 'tiny':
-      clearEffects();
-      img.classList.add('tiny');
-      playSound('pop');
-      addScore(10);
-      break;
+
     case 'spin':
-      img.classList.add('spinning');
+      doll.spinExtra = 0.01;
       playSound('woosh');
-      setTimeout(() => img.classList.remove('spinning'), 3000);
       addScore(15);
       break;
-    case 'flip':
-      clearEffects();
-      img.classList.add('upsidedown');
-      playSound('woosh');
-      addScore(10);
-      break;
-    case 'rainbow':
-      img.classList.add('rainbow');
-      spawnParticles('🌈', 8);
-      playSound('money');
-      setTimeout(() => img.classList.remove('rainbow'), 4000);
-      addScore(10);
-      break;
-    case 'crown':
-      costume.textContent = '👑';
-      costume.classList.add('show');
-      playSound('money');
-      addScore(5);
-      break;
-    case 'clown':
-      costume.textContent = '🤡';
-      costume.classList.add('show');
-      spawnParticles('🎪', 5);
-      playSound('boing');
-      addScore(15);
-      break;
-    case 'diaper':
-      belly.textContent = '🍼';
-      belly.classList.add('show');
-      costume.textContent = '👶';
-      costume.classList.add('show');
-      playSound('boing');
-      addScore(25);
-      break;
-    case 'poop':
-      costume.textContent = '💩';
-      costume.classList.add('show');
-      spawnParticles('💩', 6);
-      spawnParticles('🪰', 4);
-      playSound('fart');
-      addScore(30);
-      break;
+
     case 'inflate':
-      clearEffects();
-      img.classList.add('inflating');
+      doll.inflateAmount = Math.min(doll.inflateAmount + 0.3, 1.5);
+      doll._inflating = true;
+      setTimeout(() => doll._inflating = false, 2000);
       playSound('boing');
       addScore(15);
+      if (doll.inflateAmount >= 1.4) doAction('explode');
       break;
-    case 'explode':
-      playSound('boom');
-      flashScreen();
-      img.classList.add('exploded');
-      spawnParticles('💥', 12);
-      spawnParticles('🔥', 8);
-      addScore(50);
-      setTimeout(() => {
-        img.classList.remove('exploded');
-        img.style.transform = '';
-        img.style.opacity = '1';
-      }, 2000);
-      break;
-    case 'jelly':
-      clearEffects();
-      img.classList.add('jelly');
-      playSound('boing');
-      setTimeout(() => img.classList.remove('jelly'), 3000);
+
+    case 'shower':
+      startRain('💧', 40, 2000);
+      playSound('woosh');
+      // Wash off some splatters
+      if (doll.splatters.length > 3) doll.splatters.splice(0, 3);
       addScore(10);
       break;
-    case 'shower':
-      rain('💧', 30);
-      playSound('woosh');
-      addScore(15);
-      break;
-    case 'money':
-      rain('💵', 25);
-      playSound('money');
-      addScore(20);
-      break;
+
     case 'fart':
       playSound('fart');
-      spawnParticles('💨', 8);
-      spawnParticles('🤢', 4);
-      container.style.animation = 'shake 0.5s ease';
-      setTimeout(() => container.style.animation = '', 500);
+      doll.stinkAlpha = Math.min(1, doll.stinkAlpha + 0.4);
+      for (let i = 0; i < 10; i++) {
+        const a = Math.PI * 0.5 + (Math.random()-0.5) * 1;
+        particles.push({
+          x: doll.x, y: doll.y + 40,
+          vx: Math.cos(a)*3, vy: Math.sin(a)*3 - 2,
+          life: 50, maxLife: 50,
+          size: 15 + Math.random()*10,
+          color: `rgba(100,180,50,0.5)`,
+        });
+      }
       addScore(20);
       break;
-    case 'kiss':
-      playSound('kiss');
-      spawnParticles('💋', 10);
-      spawnParticles('❤️', 6);
-      addScore(10);
+
+    case 'fire':
+      doll.onFire = true; doll.fireTimer = 180;
+      playSound('sizzle');
+      addScore(25);
       break;
-    case 'reset':
-      clearEffects();
-      // remove all splats
-      container.querySelectorAll('.splat').forEach(s => s.remove());
-      score = 0;
-      combo = 0;
-      scoreEl.textContent = '0';
+
+    case 'freeze':
+      doll.frozen = true; doll.frozenTimer = 180;
+      doll.vx = 0; doll.vy = 0; doll.angVel = 0;
+      playSound('freeze');
+      addScore(15);
+      break;
+
+    case 'electric':
+      doll.electro = true; doll.electroTimer = 120;
+      playSound('zap');
+      // Shake rapidly
+      const shakeInt = setInterval(() => {
+        if (!doll.electro) { clearInterval(shakeInt); return; }
+        doll.x += (Math.random()-0.5) * 8;
+        doll.y += (Math.random()-0.5) * 4;
+      }, 30);
+      addScore(25);
+      break;
+
+    case 'explode':
+      doll.exploded = true; doll.explodeTimer = 90;
+      doll.targetScale = 0.01;
+      playSound('boom');
+      // Huge particle burst
+      for (let i = 0; i < 30; i++) {
+        const a = Math.PI * 2 * i / 30;
+        const sp = 3 + Math.random() * 8;
+        particles.push({
+          x: doll.x, y: doll.y,
+          vx: Math.cos(a)*sp, vy: Math.sin(a)*sp,
+          life: 60, maxLife: 60,
+          size: 20, emoji: ['💥','🔥','⭐','💀'][i % 4],
+        });
+      }
+      addScore(50);
       break;
   }
 }
 
-// Keyboard shortcuts for rapid fire
-document.addEventListener('keydown', e => {
-  const map = {
-    '1': 'cake', '2': 'egg', '3': 'tomato', '4': 'slap',
-    '5': 'fat', '6': 'tiny', '7': 'spin', '8': 'explode',
-    ' ': 'slap', 'f': 'fart', 'p': 'poop',
-  };
-  if (map[e.key]) doAction(map[e.key]);
-});
+// ============ GAME LOOP ============
+let lastTime = 0;
+function gameLoop(time) {
+  const dt = Math.min((time - lastTime) / 16.67, 3);
+  lastTime = time;
+
+  const sw = W/devicePixelRatio, sh = H/devicePixelRatio;
+  ctx.clearRect(0, 0, sw, sh);
+
+  // Background gradient
+  const grad = ctx.createRadialGradient(sw/2, sh/2, 0, sw/2, sh/2, sh);
+  grad.addColorStop(0, '#1a1a2e');
+  grad.addColorStop(1, '#0a0a0a');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, sw, sh);
+
+  // Floor
+  ctx.fillStyle = '#151515';
+  ctx.fillRect(0, sh - 30, sw, 30);
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, sh - 30);
+  ctx.lineTo(sw, sh - 30);
+  ctx.stroke();
+
+  updatePhysics(dt);
+  updateProjectiles();
+  updateParticles();
+  updateRain();
+
+  drawDoll(dt);
+  drawProjectiles();
+  drawParticles();
+  drawRain();
+
+  requestAnimationFrame(gameLoop);
+}
+
+// Start
+stinkInterval = setInterval(emitStink, 500);
+setTimeout(() => resetDoll(), 100);
+requestAnimationFrame(gameLoop);
 </script>
 </body>
 </html>
