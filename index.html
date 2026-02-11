@@ -480,21 +480,25 @@ function drawDoll(dt) {
   ctx.fill();
 
   // === FACE (cropped photo) ===
-  const headY = -75;
-  const headR = doll.headR;
+  const headY = -80;
+  const headR = doll.headR * 1.25;
   if (faceLoaded) {
     ctx.save();
     ctx.beginPath();
-    ctx.ellipse(0, headY, headR, headR * 1.1, 0, 0, Math.PI*2);
+    // Slightly taller ellipse to show full face including beard
+    ctx.ellipse(0, headY, headR, headR * 1.25, 0, 0, Math.PI*2);
     ctx.clip();
-    // Draw face image centered on head
-    const imgSize = headR * 2.4;
-    ctx.drawImage(faceImg, -imgSize/2, headY - imgSize/2 - 5, imgSize, imgSize);
+    // Map image: use full width, crop from top to get face centered
+    const aspect = faceImg.naturalHeight / faceImg.naturalWidth;
+    const drawW = headR * 2.6;
+    const drawH = drawW * aspect;
+    // Offset upward so face is centered (not top of head)
+    ctx.drawImage(faceImg, -drawW/2, headY - drawH * 0.42, drawW, drawH);
     ctx.restore();
   } else {
     ctx.fillStyle = '#d4a574';
     ctx.beginPath();
-    ctx.ellipse(0, headY, headR, headR * 1.1, 0, 0, Math.PI*2);
+    ctx.ellipse(0, headY, headR, headR * 1.25, 0, 0, Math.PI*2);
     ctx.fill();
   }
 
